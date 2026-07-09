@@ -117,6 +117,20 @@ class Rotulador:
             e["borda"] = int(bool(borda))
             self._salvar()
 
+    def definir_varios(self, nomes, rotulo=None, borda=None):
+        """Aplica rotulo e/ou borda a varios tiles de uma vez, salvando o CSV
+        UMA unica vez ao final (evita N reescritas ao corrigir um lote)."""
+        if rotulo is not None:
+            assert rotulo in ROTULOS_VALIDOS, f"rotulo invalido: {rotulo}"
+        for nome in nomes:
+            e = self.labels.get(nome, {"rotulo": "", "borda": 0})
+            if rotulo is not None:
+                e["rotulo"] = rotulo
+            if borda is not None:
+                e["borda"] = int(bool(borda))
+            self.labels[nome] = e
+        self._salvar()
+
     def _salvar(self):
         """Reescreve o CSV inteiro de forma atomica (temp + replace)."""
         tmp = self.labels_csv + ".tmp"

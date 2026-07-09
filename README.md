@@ -94,6 +94,32 @@ Gera em `data/<prefixo>_viz/`:
   com a imagem real dos tiles daquela classe na posição correta e o resto preto.
 - `<prefixo>_composite_borda.png` — o mesmo, só com os tiles marcados como borda.
 
+### 5. Corrigir rótulos errados
+
+Se a visualização revelar erros de rotulagem, use a app de correção em vez de editar o CSV à mão:
+
+```bash
+python3 corrigir.py <prefixo>              # escala 0.25 (padrão)
+python3 corrigir.py <prefixo> --escala 0.2 # mais leve, se ficar pesado
+```
+
+Mostra a cena com **zoom e pan** e um overlay colorido por classe sobre a imagem real.
+Dê zoom para conferir detalhes, clique num tile para selecioná-lo, ou **arraste** um retângulo
+(ou **Shift+clique**) para selecionar vários; então aplique o rótulo certo. As mudanças gravam
+no mesmo `<prefixo>_labels.csv`. (Na primeira execução, monta e cacheia a imagem de fundo — pode
+levar alguns minutos; as próximas são rápidas.)
+
+| Controle | Ação |
+|---|---|
+| roda do mouse | zoom in/out no ponto do cursor |
+| botão direito (arrastar) / setas | mover a imagem (pan) |
+| `0` | ajustar a cena inteira à janela |
+| clique / arrastar / Shift+clique | selecionar um / vários tiles |
+| `1`–`5` | aplica mar / terra / nuvem / objeto / incerto aos selecionados |
+| `B` / `N` | marca / remove a **borda** dos selecionados |
+| `O` | liga/desliga o overlay de classes |
+| `Esc` / `q` | limpa a seleção / sair (tudo já salvo) |
+
 ## Saída
 
 Cada cena é processada de forma independente:
