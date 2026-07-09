@@ -10,6 +10,8 @@ de reconhecimento.
    (pansharpening) em resolução total e recorta o resultado numa grade de tiles PNG.
 2. **Rotulagem** (`rotular.py`): interface para classificar cada tile rapidamente e salvar
    os rótulos em CSV.
+3. **Visualização** (`visualizar.py`): monta imagens que mostram o que foi rotulado —
+   uma imagem por classe e um overview da cena com os tiles contornados por cor.
 
 Há também o `gerar_rgb.py`, que gera uma única imagem RGB da cena inteira (visão geral),
 em vez de tiles.
@@ -76,6 +78,21 @@ a rotulagem pode ser interrompida e retomada a qualquer momento.
 
 Os rótulos são salvos em `data/<prefixo>_tiles/<prefixo>_labels.csv`
 (`arquivo, rotulo, borda, timestamp`).
+
+### 4. Visualizar os rótulos
+
+```bash
+python3 visualizar.py <prefixo>               # escala 0.1 (padrão)
+python3 visualizar.py <prefixo> --escala 0.2  # mais detalhe (arquivos maiores)
+```
+
+Gera em `data/<prefixo>_viz/`:
+
+- `<prefixo>_overview.png` — a cena reduzida com cada tile contornado por um quadrado da cor da
+  sua classe; tiles marcados como borda recebem contorno magenta; inclui legenda.
+- `<prefixo>_composite_<classe>.png` — uma imagem por classe (mar/terra/nuvem/objeto/incerto)
+  com a imagem real dos tiles daquela classe na posição correta e o resto preto.
+- `<prefixo>_composite_borda.png` — o mesmo, só com os tiles marcados como borda.
 
 ## Saída
 

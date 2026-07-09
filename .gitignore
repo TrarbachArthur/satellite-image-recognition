@@ -1,6 +1,7 @@
 *.tif
 *.png
 *_tiles/
+*_viz/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
