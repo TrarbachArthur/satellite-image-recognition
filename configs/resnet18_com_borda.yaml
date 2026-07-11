@@ -1,0 +1,9 @@
+# Hipotese: manter os tiles marcados como borda no treino muda alguma coisa?
+# (comparar com resnet18_base, que exclui borda por default)
+nome: resnet18_com_borda
+dados:
+  excluir_borda: false
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: leve

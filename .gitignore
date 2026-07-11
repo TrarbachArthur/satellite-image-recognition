@@ -2,6 +2,8 @@
 *.png
 *_tiles/
 *_viz/
+experimentos/
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,6 +4,10 @@ Converte imagens de satélite em "formato pan" (bandas separadas) em tiles RGB d
 resolução e permite rotulá-los, produzindo um conjunto de dados para treinar um modelo
 de reconhecimento.
 
+> **Guia completo:** este README é a visão rápida. Para o passo a passo detalhado de todos os
+> processos, resultados esperados de cada etapa e a referência de todas as configurações
+> (CLI e YAML), veja **[USO.md](USO.md)**.
+
 ## O que o projeto faz
 
 1. **Fusão + recorte** (`gerar_tiles.py`): funde as bandas de cor com a banda pancromática
@@ -12,6 +16,9 @@ de reconhecimento.
    os rótulos em CSV.
 3. **Visualização** (`visualizar.py`): monta imagens que mostram o que foi rotulado —
    uma imagem por classe e um overview da cena com os tiles contornados por cor.
+4. **Treinamento** (`treinar.py` + `avaliar.py`): treina classificadores (CNNs e Visual
+   Transformers via timm) nos tiles rotulados, com experimentos controlados por arquivos
+   YAML, e compara os resultados.
 
 Há também o `gerar_rgb.py`, que gera uma única imagem RGB da cena inteira (visão geral),
 em vez de tiles.
@@ -119,6 +126,52 @@ levar alguns minutos; as próximas são rápidas.)
 | `B` / `N` | marca / remove a **borda** dos selecionados |
 | `O` | liga/desliga o overlay de classes |
 | `Esc` / `q` | limpa a seleção / sair (tudo já salvo) |
+
+### 6. Treinar o modelo
+
+O treinamento usa PyTorch com GPU (instale o wheel CUDA antes das demais dependências):
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install -r requirements.txt
+```
+
+Cada experimento é um arquivo YAML em `configs/` controlando arquitetura (qualquer modelo do
+timm, incl. ViT), pré-treinamento, augmentation, balanceamento, fração dos dados, split etc.
+Só o campo `nome` é obrigatório — o resto tem defaults (veja `DEFAULTS` em `treinar.py`).
+
+```bash
+python3 treinar.py --config configs/smoke.yaml      # valida o pipeline em ~1 min (2% dos dados)
+python3 treinar.py --config configs/resnet18_base.yaml
+python3 treinar.py --config configs/vit_small_pretrained.yaml
+tensorboard --logdir experimentos                    # curvas de todos os experimentos
+```
+
+Saídas em `experimentos/<nome>/`: config congelado, `splits.csv` (split exato usado),
+`historico.csv`, checkpoints (`melhor.pt`/`ultimo.pt`) e logs do TensorBoard. Use
+`--retomar` para continuar um treino interrompido e `--sobrescrever` para recomeçar.
+
+Hipóteses prontas em `configs/` (cada uma difere do baseline em 1–2 linhas):
+
+| Config | Hipótese |
+|---|---|
+| `resnet18_base` | baseline sem tratamento de desbalanceamento |
+| `resnet18_pesos` / `resnet18_sampler` / `resnet18_focal` | 3 formas de tratar o desbalanceamento |
+| `resnet18_com_borda` | manter tiles de borda muda algo? |
+| `resnet18_split_espacial` | quanto o split aleatório infla as métricas (vazamento espacial)? |
+| `vit_small_pretrained` / `convnext_tiny` / `efficientnet_b0` | comparação de arquiteturas |
+
+### 7. Avaliar e comparar
+
+```bash
+python3 avaliar.py experimentos/resnet18_base        # avalia no test (métricas, matriz, predições)
+python3 avaliar.py --comparar                        # tabela agregada de todos os experimentos
+```
+
+**Nota sobre a classe 'objeto':** com pouquíssimos exemplos rotulados, as métricas dessa
+classe têm alta variância (a coluna `n_objeto` da comparação mostra o suporte). Enquanto não
+houver mais rotulagem, trate resultados de 'objeto' como qualitativos; as probabilidades por
+tile salvas em `predicoes_*.csv` ajudam a minerar novos candidatos para rotular.
 
 ## Saída
 

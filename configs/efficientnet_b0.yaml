@@ -1,0 +1,6 @@
+# CNN eficiente: boa acuracia por FLOP, util para inferencia em muitas cenas.
+nome: efficientnet_b0
+modelo:
+  arquitetura: efficientnet_b0
+  pretrained: true
+augmentation: leve

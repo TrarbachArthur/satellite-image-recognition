@@ -1,0 +1,10 @@
+# Hipotese (b): class weights na loss (CE ponderada, peso com teto max_peso).
+# Difere do baseline em 1 linha.
+nome: resnet18_pesos
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: leve
+balanceamento:
+  metodo: pesos
+  max_peso: 20.0

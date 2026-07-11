@@ -1,0 +1,11 @@
+# Hipotese: quanto o split aleatorio esta inflado por vazamento espacial?
+# (tiles vizinhos quase identicos caindo em treino e val). Se as metricas
+# despencarem vs resnet18_base, o vazamento era real.
+nome: resnet18_split_espacial
+split:
+  metodo: espacial
+  bloco_px: 2048
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: leve

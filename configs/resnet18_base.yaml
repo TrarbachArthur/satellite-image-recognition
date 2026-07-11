@@ -1,0 +1,10 @@
+# Baseline de referencia: CNN classica pre-treinada, sem tratamento de desbalanceamento.
+# Hipotese (a): o que acontece se nao fizermos nada? (esperado: otima acc global,
+# recall ~0 nas classes raras)
+nome: resnet18_base
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: leve
+balanceamento:
+  metodo: nenhum

@@ -1,0 +1,10 @@
+# Hipotese (c): oversampling da minoria via WeightedRandomSampler.
+# Augmentation e importante aqui: a minoria e vista muitas vezes por epoca.
+nome: resnet18_sampler
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: pesada
+balanceamento:
+  metodo: sampler
+  max_peso: 20.0

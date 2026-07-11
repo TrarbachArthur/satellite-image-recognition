@@ -1,0 +1,9 @@
+# CNN moderna (ConvNeXt): contraste com ViT e com a CNN classica.
+nome: convnext_tiny
+modelo:
+  arquitetura: convnext_tiny
+  pretrained: true
+treino:
+  batch: 96
+  lr: 1.0e-4
+augmentation: leve

@@ -1,0 +1,11 @@
+# Smoke test: valida o pipeline de ponta a ponta em ~2 min (nao treina de verdade)
+nome: smoke
+dados:
+  fracao: 0.02
+modelo:
+  arquitetura: resnet18
+  pretrained: false
+treino:
+  epocas: 2
+  batch: 64
+  num_workers: 2
