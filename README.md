@@ -19,6 +19,8 @@ de reconhecimento.
 4. **Treinamento** (`treinar.py` + `avaliar.py`): treina classificadores (CNNs e Visual
    Transformers via timm) nos tiles rotulados, com experimentos controlados por arquivos
    YAML, e compara os resultados.
+5. **Pré-rotulagem** (`inferir.py`): usa os modelos treinados para rotular automaticamente
+   cenas novas — você só revisa as predições (com `corrigir.py`) em vez de rotular do zero.
 
 Há também o `gerar_rgb.py`, que gera uma única imagem RGB da cena inteira (visão geral),
 em vez de tiles.
@@ -172,6 +174,17 @@ python3 avaliar.py --comparar                        # tabela agregada de todos 
 classe têm alta variância (a coluna `n_objeto` da comparação mostra o suporte). Enquanto não
 houver mais rotulagem, trate resultados de 'objeto' como qualitativos; as probabilidades por
 tile salvas em `predicoes_*.csv` ajudam a minerar novos candidatos para rotular.
+
+### 8. Pré-rotular cenas novas com os modelos
+
+```bash
+python3 inferir.py sat3 --experimentos experimentos/vit_small_pretrained experimentos/resnet18_sampler --limiar-incerto 0.7
+python3 corrigir.py sat3   # revisar as predições (incertos aparecem em amarelo)
+```
+
+Gera o `labels.csv` da cena nova automaticamente (ensemble opcional de vários modelos;
+tiles de baixa confiança podem virar 'incerto' para revisão). Nunca sobrescreve uma
+rotulagem existente sem `--sobrescrever`. Detalhes no [USO.md](USO.md).
 
 ## Saída
 

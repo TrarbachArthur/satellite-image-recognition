@@ -11,6 +11,9 @@ bandas .tif → [1] gerar_tiles.py → tiles PNG → [2] rotular.py → labels.c
               [5] treinar.py ← configs/*.yaml   [3] visualizar.py (conferir)
                      ↓                          [4] corrigir.py  (corrigir erros)
               [6] avaliar.py → métricas / comparação
+                     ↓
+              [7] inferir.py → pré-rotula cenas novas com os modelos treinados
+                               (revisão com corrigir.py → mais dados → novo treino)
 ```
 
 Convenção: cada cena de satélite tem um **prefixo** (ex. `sat1`) e vive em `data/`. Todos os
@@ -306,6 +309,49 @@ resnet18_sampler       test   0.981  0.912    0.874     0.750       0.600       
 A coluna `n_objeto` (suporte no split) fica sempre visível de propósito: com poucos exemplos,
 `rec_objeto 0.750` significa "6 de 8" — leia as métricas de 'objeto' como indicativas, não
 conclusivas, enquanto a classe tiver poucas dezenas de rótulos.
+
+---
+
+## 7. `inferir.py` — pré-rotulagem por inferência
+
+Usa modelos já treinados para gerar um `<prefixo>_labels.csv` inicial de uma cena **nova**
+(já tileada, sem rótulos). Em vez de rotular do zero, você apenas **revisa** as predições —
+bem mais rápido. Também serve como teste de generalização dos modelos em cenas não vistas.
+
+```bash
+python3 inferir.py sat3 --experimentos experimentos/vit_small_pretrained
+python3 inferir.py sat3 --experimentos experimentos/vit_small_pretrained experimentos/resnet18_sampler --limiar-incerto 0.7
+```
+
+| Opção | Default | Efeito |
+|---|---|---|
+| `--experimentos DIR [DIR ...]` | (obrigatório) | 1+ experimentos treinados. Com 2+, faz **ensemble** (média das probabilidades) — pré-rótulos melhores, custo de ~N passes de inferência (minutos cada). |
+| `--checkpoint melhor\|ultimo` | melhor | Checkpoint de cada experimento. |
+| `--limiar-incerto F` | 0.0 | 0.0 = sempre grava a classe prevista, mesmo com confiança baixa. >0 = tiles com prob. máxima abaixo de F recebem `incerto` (aparecem em amarelo no corrigir.py e ficam fora do treino até revisão). |
+| `--batch N` / `--num-workers N` | 128 / 2 | Parâmetros de inferência. |
+| `--sobrescrever` | off | **Proteção**: se a cena já tem `labels.csv` (possível rotulagem manual!), o script aborta; esta flag força a substituição. |
+| `--tiles DIR` / `--permitir-cpu` | — | Como nos demais scripts. |
+
+**Resultado esperado**, na pasta de tiles (~1–3 min por modelo por cena na 2070):
+- `<prefixo>_labels.csv` — mesmo formato da rotulagem manual (`arquivo,rotulo,borda,timestamp`,
+  `borda=0`), compatível direto com `corrigir.py`/`rotular.py`/`visualizar.py`/`treinar.py`.
+- `<prefixo>_predicoes_auto.csv` — `arquivo,predito,confianca,prob_<classe>...` — registro do
+  que foi automático; use para priorizar a revisão (menor confiança primeiro) e para minerar
+  candidatos a 'objeto' (`prob_objeto` alta).
+- Resumo no console: distribuição prevista, nº de incertos, confiança média, candidatos a objeto.
+
+**Fluxo de revisão recomendado:**
+
+```bash
+python3 inferir.py sat3 --experimentos experimentos/vit_small_pretrained experimentos/resnet18_sampler --limiar-incerto 0.7
+python3 visualizar.py sat3    # auditoria visual rápida das predições
+python3 corrigir.py sat3      # revisão: overlay por classe; incertos em amarelo;
+                              #   marque as bordas por seleção de região (B)
+# depois da revisão, inclua a cena no treino: dados.cenas: [sat1, sat2, sat3] no YAML
+```
+
+O modelo **não prevê a marca de borda** — os tiles saem com `borda=0` e as bordas da cena
+devem ser marcadas na revisão (no corrigir.py: arraste selecionando a faixa da borda e tecle `B`).
 
 ---
 
