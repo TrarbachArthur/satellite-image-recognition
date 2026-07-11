@@ -74,7 +74,14 @@ toque. Interrompível: pode fechar e reabrir que continua do primeiro tile sem r
 ```bash
 python3 rotular.py <prefixo>
 python3 rotular.py --tiles data/outra_pasta_tiles   # pasta arbitrária
+python3 rotular.py <prefixo> --classes incerto      # navega SÓ pelos tiles com esses rótulos
 ```
+
+`--classes` (1+ valores entre mar/terra/nuvem/objeto/incerto) restringe a navegação aos tiles
+cujo rótulo atual está no filtro — ideal para revisar uma classe específica em sequência
+(ex. os 'incerto' da pré-rotulagem). Começa do primeiro tile do filtro; o progresso e o topo
+da janela mostram o filtro ativo. O CSV continua completo: rotular um tile para fora do filtro
+não remove os rótulos das outras classes.
 
 | Controle | Ação |
 |---|---|
@@ -129,6 +136,7 @@ python3 corrigir.py <prefixo> [--escala 0.25] [--tiles DIR]
 |---|---|---|
 | `--escala F` | 0.25 | Resolução da imagem de fundo. Na 1ª execução ela é montada (abre todos os tiles, minutos) e fica **cacheada** em `data/<prefixo>_viz/<prefixo>_base_e<escala>.png`; das próximas vezes abre na hora. |
 | `--tiles DIR` | `data/<prefixo>_tiles` | Pasta de tiles/labels. |
+| `--classes C [C ...]` | (todas) | Filtro de classes: só tiles com esses rótulos ganham overlay **e** só eles são selecionáveis — arraste sobre uma região inteira e apenas os tiles do filtro recebem o novo rótulo. Ex.: `--classes incerto` para revisar só os incertos da pré-rotulagem. |
 
 | Controle | Ação |
 |---|---|
@@ -345,8 +353,9 @@ python3 inferir.py sat3 --experimentos experimentos/vit_small_pretrained experim
 ```bash
 python3 inferir.py sat3 --experimentos experimentos/vit_small_pretrained experimentos/resnet18_sampler --limiar-incerto 0.7
 python3 visualizar.py sat3    # auditoria visual rápida das predições
-python3 corrigir.py sat3      # revisão: overlay por classe; incertos em amarelo;
-                              #   marque as bordas por seleção de região (B)
+python3 corrigir.py sat3 --classes incerto   # 1ª passada: revisar SÓ os incertos
+python3 corrigir.py sat3      # 2ª passada: revisão geral; marque as bordas por
+                              #   seleção de região (B)
 # depois da revisão, inclua a cena no treino: dados.cenas: [sat1, sat2, sat3] no YAML
 ```
 

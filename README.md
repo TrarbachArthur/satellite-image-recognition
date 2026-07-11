@@ -108,8 +108,9 @@ Gera em `data/<prefixo>_viz/`:
 Se a visualização revelar erros de rotulagem, use a app de correção em vez de editar o CSV à mão:
 
 ```bash
-python3 corrigir.py <prefixo>              # escala 0.25 (padrão)
-python3 corrigir.py <prefixo> --escala 0.2 # mais leve, se ficar pesado
+python3 corrigir.py <prefixo>                    # escala 0.25 (padrão)
+python3 corrigir.py <prefixo> --escala 0.2       # mais leve, se ficar pesado
+python3 corrigir.py <prefixo> --classes incerto  # exibe/seleciona só essas classes
 ```
 
 Mostra a cena com **zoom e pan** e um overlay colorido por classe sobre a imagem real.

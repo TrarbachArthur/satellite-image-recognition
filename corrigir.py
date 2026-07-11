@@ -20,7 +20,7 @@ import sys
 from PIL import Image
 
 # Reuso: persistencia de rotulos e cores por classe ja definidas no projeto.
-from rotular import Rotulador, CLASSES
+from rotular import Rotulador, CLASSES, ROTULOS_VALIDOS
 from visualizar import CORES, COR_BORDA, COR_DESCONHECIDO
 
 Image.MAX_IMAGE_PIXELS = None  # cenas reduzidas ainda sao grandes (>178 MP)
@@ -92,9 +92,12 @@ def obter_base(prefixo, tiles_dir, coords, escala, out_w, out_h):
     return base
 
 
-def montar_overlay(base, rot, coords, escala, passo):
+def montar_overlay(base, rot, coords, escala, passo, classes_filtro=None):
     """Sobre a base real, mistura uma cor translucida por classe (grade pequena
-    ampliada em NEAREST). Reflete o estado atual dos rotulos."""
+    ampliada em NEAREST). Reflete o estado atual dos rotulos.
+
+    Se classes_filtro for informado, tiles cujo rotulo nao esteja no filtro
+    ficam sem tint (mostram a imagem crua) — uteis para revisar so uma classe."""
     px, py = passo
     cols = max(x // px for x, y, w, h in coords.values()) + 1
     rows = max(y // py for x, y, w, h in coords.values()) + 1
@@ -103,6 +106,8 @@ def montar_overlay(base, rot, coords, escala, passo):
     for arquivo, (x, y, w, h) in coords.items():
         rotulo, _ = rot.estado(arquivo)
         if not rotulo:
+            continue
+        if classes_filtro is not None and rotulo not in classes_filtro:
             continue
         cor.putpixel((x // px, y // py), CORES.get(rotulo, COR_DESCONHECIDO))
         alfa.putpixel((x // px, y // py), ALFA_OVERLAY)
@@ -116,11 +121,14 @@ def montar_overlay(base, rot, coords, escala, passo):
 # ---------------------------------------------------------------------------
 # Interface grafica
 # ---------------------------------------------------------------------------
-def rodar_gui(prefixo, rot, coords, escala, passo, base_real, base_over):
+def rodar_gui(prefixo, rot, coords, escala, passo, base_real, base_over, classes_filtro=None):
     """Visualizador com zoom e pan sobre a base reduzida (escala fixa).
 
     Apenas a regiao visivel e recortada da base e ampliada -> leve e fluido em
-    qualquer nivel de zoom. Coordenadas internas em "px da base" (= cena*escala)."""
+    qualquer nivel de zoom. Coordenadas internas em "px da base" (= cena*escala).
+
+    Se classes_filtro for informado, apenas tiles cujo rotulo atual esteja no
+    filtro podem ser selecionados (clique simples ou arrasto)."""
     import tkinter as tk
     from PIL import ImageTk
 
@@ -128,6 +136,9 @@ def rodar_gui(prefixo, rot, coords, escala, passo, base_real, base_over):
     origem = {(x, y): a for a, (x, y, w, h) in coords.items()}
     base_w, base_h = base_real.size
     Z_MAX = 8.0  # ampliacao maxima da base (base ja e reduzida; alem disso borra)
+
+    def passa_filtro(nome):
+        return classes_filtro is None or rot.estado(nome)[0] in classes_filtro
 
     janela = tk.Tk()
     janela.title(f"Correcao de rotulos — {prefixo}")
@@ -214,7 +225,8 @@ def rodar_gui(prefixo, rot, coords, escala, passo, base_real, base_over):
         else:
             det = f"  |  {n} selecionados" if n else "  |  nada selecionado"
         zpct = (estado["z"] / z_fit(canvas.winfo_width() or 1, canvas.winfo_height() or 1))
-        topo.config(text=f"{prefixo} ({len(coords)} tiles)  zoom {zpct:.1f}x{det}   {msg}")
+        sufixo_filtro = f"  [filtro: {','.join(classes_filtro)}]" if classes_filtro else ""
+        topo.config(text=f"{prefixo} ({len(coords)} tiles)  zoom {zpct:.1f}x{det}{sufixo_filtro}   {msg}")
 
     # --- selecao (botao esquerdo) ---
     def on_press(event):
@@ -241,14 +253,14 @@ def rodar_gui(prefixo, rot, coords, escala, passo, base_real, base_over):
             estado["sel"] = set()
         if abs(event.x - x0) < 5 and abs(event.y - y0) < 5:
             a = tile_em(event.x, event.y)
-            if a:
+            if a and passa_filtro(a):
                 estado["sel"].add(a)
         else:
             bx0, by0 = disp_para_base(min(x0, event.x), min(y0, event.y))
             bx1, by1 = disp_para_base(max(x0, event.x), max(y0, event.y))
             sx0, sy0, sx1, sy1 = bx0 / escala, by0 / escala, bx1 / escala, by1 / escala
             for a, (x, y, w, h) in coords.items():
-                if sx0 <= x + w / 2 <= sx1 and sy0 <= y + h / 2 <= sy1:
+                if sx0 <= x + w / 2 <= sx1 and sy0 <= y + h / 2 <= sy1 and passa_filtro(a):
                     estado["sel"].add(a)
         render()
 
@@ -288,8 +300,14 @@ def rodar_gui(prefixo, rot, coords, escala, passo, base_real, base_over):
     # --- acoes de rotulo ---
     def aplicar_rotulo(rotulo):
         if estado["sel"]:
+            n = len(estado["sel"])
             rot.definir_varios(list(estado["sel"]), rotulo=rotulo)
-            render(); atualizar_status(f"-> {len(estado['sel'])} tile(s) = {rotulo}")
+            # com filtro ativo, tiles que saem do conjunto em revisao (o novo
+            # rotulo nao esta mais no filtro) perdem apenas a marcacao de
+            # selecao - nao ha cor nova a pintar aqui (overlay ja e estatico).
+            if classes_filtro is not None:
+                estado["sel"] = {a for a in estado["sel"] if passa_filtro(a)}
+            render(); atualizar_status(f"-> {n} tile(s) = {rotulo}")
 
     def aplicar_borda(valor):
         if estado["sel"]:
@@ -349,7 +367,17 @@ def main():
     p.add_argument("prefixo", nargs="?", help="Prefixo da imagem (ex: sat1)")
     p.add_argument("--tiles", help="Caminho da pasta de tiles (alternativa ao prefixo)")
     p.add_argument("--escala", type=float, default=0.25, help="Escala da exibicao (padrao 0.25)")
+    p.add_argument("--classes", nargs="+", default=None,
+                   help="Restringe overlay e selecao aos tiles rotulados com estas "
+                        "classes (ex: --classes incerto)")
     args = p.parse_args()
+
+    if args.classes is not None:
+        invalidas = [c for c in args.classes if c not in ROTULOS_VALIDOS]
+        if invalidas:
+            print(f"ERRO: classes invalidas em --classes: {invalidas}. "
+                  f"Validas: {sorted(ROTULOS_VALIDOS)}")
+            sys.exit(1)
 
     tiles_dir, prefixo = resolver(args)
     if not os.path.isdir(tiles_dir):
@@ -369,9 +397,11 @@ def main():
 
     base_real = obter_base(prefixo, tiles_dir, coords, args.escala, out_w, out_h)
     print("Montando overlay de classes...")
-    base_over = montar_overlay(base_real, rot, coords, args.escala, passo)
+    base_over = montar_overlay(base_real, rot, coords, args.escala, passo,
+                               classes_filtro=args.classes)
 
-    rodar_gui(prefixo, rot, coords, args.escala, passo, base_real, base_over)
+    rodar_gui(prefixo, rot, coords, args.escala, passo, base_real, base_over,
+             classes_filtro=args.classes)
 
 
 if __name__ == "__main__":

@@ -41,14 +41,21 @@ CABECALHO = ["arquivo", "rotulo", "borda", "timestamp"]
 class Rotulador:
     """Gerencia a lista ordenada de tiles e a persistencia dos rotulos."""
 
-    def __init__(self, tiles_dir, prefixo):
+    def __init__(self, tiles_dir, prefixo, classes=None):
         self.tiles_dir = tiles_dir
         self.prefixo = prefixo
         self.manifesto_csv = os.path.join(tiles_dir, f"{prefixo}_tiles.csv")
         self.labels_csv = os.path.join(tiles_dir, f"{prefixo}_labels.csv")
-        self.tiles = self._carregar_ordem()          # lista de nomes de arquivo ordenados
+        self.classes_filtro = classes
         self.labels = self._carregar_labels()         # {arquivo: {"rotulo","borda"}}
-        self.indice = self.primeiro_nao_rotulado()
+        # tiles_todos: lista COMPLETA ordenada -- e a base da persistencia
+        # (_salvar), independente de qualquer filtro de navegacao.
+        self.tiles_todos = self._carregar_ordem()
+        self.tiles = self.tiles_todos                 # visao de navegacao (filtravel)
+        if classes is not None:
+            self.tiles = [n for n in self.tiles_todos
+                          if self.labels.get(n, {}).get("rotulo") in classes]
+        self.indice = 0 if classes is not None else self.primeiro_nao_rotulado()
 
     # --- carregamento ---
     def _carregar_ordem(self):
@@ -132,13 +139,17 @@ class Rotulador:
         self._salvar()
 
     def _salvar(self):
-        """Reescreve o CSV inteiro de forma atomica (temp + replace)."""
+        """Reescreve o CSV inteiro de forma atomica (temp + replace).
+
+        Itera sobre tiles_todos (lista completa), NUNCA sobre self.tiles: com um
+        filtro de classes ativo, self.tiles e um subconjunto e salvar a partir
+        dele apagaria os rotulos de todas as outras classes."""
         tmp = self.labels_csv + ".tmp"
         with open(tmp, "w", newline="") as f:
             w = csv.writer(f)
             w.writerow(CABECALHO)
             ts = time.strftime("%Y-%m-%d %H:%M:%S")
-            for nome in self.tiles:
+            for nome in self.tiles_todos:
                 e = self.labels.get(nome)
                 if e and e.get("rotulo"):
                     w.writerow([nome, e["rotulo"], e["borda"], ts])
@@ -239,7 +250,8 @@ def rodar_gui(rot):
         feitos = rot.total_rotulados()
         total = rot.total()
         pct = (100.0 * feitos / total) if total else 0.0
-        lbl_topo.config(text=f"{rot.prefixo} — {feitos}/{total} rotuladas ({pct:.1f}%)")
+        sufixo_filtro = f"  [filtro: {','.join(rot.classes_filtro)}]" if rot.classes_filtro else ""
+        lbl_topo.config(text=f"{rot.prefixo} — {feitos}/{total} rotuladas ({pct:.1f}%){sufixo_filtro}")
 
         # subtitulo: posicao + arquivo + rotulo atual (se revisitando)
         marca = f"  •  rotulo atual: {rotulo_salvo.upper()}" if rotulo_salvo else "  •  (sem rotulo)"
@@ -349,16 +361,29 @@ def main():
     p = argparse.ArgumentParser(description="Rotulagem rapida de tiles de satelite.")
     p.add_argument("prefixo", nargs="?", help="Prefixo da imagem (ex: sat2)")
     p.add_argument("--tiles", help="Caminho da pasta de tiles (alternativa ao prefixo)")
+    p.add_argument("--classes", nargs="+", default=None,
+                   help="Filtra e mostra apenas tiles ja rotulados com estas classes "
+                        "(ex: --classes incerto)")
     args = p.parse_args()
+
+    if args.classes is not None:
+        invalidas = [c for c in args.classes if c not in ROTULOS_VALIDOS]
+        if invalidas:
+            print(f"ERRO: classes invalidas em --classes: {invalidas}. "
+                  f"Validas: {sorted(ROTULOS_VALIDOS)}")
+            sys.exit(1)
 
     tiles_dir, prefixo = resolver_tiles_dir(args)
     if not os.path.isdir(tiles_dir):
         print(f"ERRO: pasta de tiles nao encontrada: {tiles_dir}")
         sys.exit(1)
 
-    rot = Rotulador(tiles_dir, prefixo)
+    rot = Rotulador(tiles_dir, prefixo, classes=args.classes)
     if rot.total() == 0:
-        print(f"ERRO: nenhum tile encontrado em {tiles_dir}")
+        if args.classes is not None:
+            print(f"ERRO: nenhum tile com rotulo em {args.classes}")
+        else:
+            print(f"ERRO: nenhum tile encontrado em {tiles_dir}")
         sys.exit(1)
 
     print(f"Rotulando '{prefixo}': {rot.total_rotulados()}/{rot.total()} ja rotulados. "
