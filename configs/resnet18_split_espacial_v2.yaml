@@ -1,0 +1,11 @@
+# v2: dataset atualizado com sat3 revisado.
+nome: resnet18_split_espacial_v2
+dados:
+  cenas: [sat1, sat2, sat3]
+split:
+  metodo: espacial
+  bloco_px: 2048
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: leve

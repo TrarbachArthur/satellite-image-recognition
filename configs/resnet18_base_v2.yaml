@@ -1,0 +1,11 @@
+# v2: dataset atualizado com sat3 revisado. Nome novo preserva o experimento
+# antigo para comparacao antes/depois no avaliar.py --comparar.
+nome: resnet18_base_v2
+dados:
+  cenas: [sat1, sat2, sat3]
+modelo:
+  arquitetura: resnet18
+  pretrained: true
+augmentation: leve
+balanceamento:
+  metodo: nenhum
