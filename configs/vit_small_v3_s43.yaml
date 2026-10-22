@@ -1,0 +1,53 @@
+nome: vit_small_v3_s43
+seed: 43
+dados:
+  cenas:
+  - sat1
+  - sat2
+  - sat3
+  - sat4
+  - sat5
+  - sat6
+  - sat7
+  - sat8
+  - sat9
+  - sat10
+  - sat11
+  - sat12
+  - sat13
+  - sat14
+  - sat15
+  - sat16
+  excluir_borda: true
+  fracao: 1.0
+  max_por_classe: 40000
+  img_size: 224
+split:
+  metodo: aleatorio
+  fracoes:
+  - 0.7
+  - 0.15
+  - 0.15
+  bloco_px: 2048
+modelo:
+  arquitetura: vit_small_patch16_224
+  pretrained: true
+balanceamento:
+  metodo: nenhum
+  max_peso: 20.0
+loss:
+  tipo: ce
+  gamma: 2.0
+  label_smoothing: 0.0
+augmentation: leve
+treino:
+  epocas: 500
+  batch: 96
+  lr: 0.0001
+  weight_decay: 0.05
+  otimizador: adamw
+  scheduler: cosseno
+  amp: true
+  num_workers: 4
+  early_stopping_paciencia: 12
+  metrica_checkpoint: f1_macro
