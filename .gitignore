@@ -2,7 +2,7 @@
 *.png
 *_tiles/
 *_viz/
-experimentos/
+experiments/
 *.pt
 
 # Byte-compiled / optimized / DLL files

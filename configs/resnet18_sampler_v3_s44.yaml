@@ -1,7 +1,7 @@
-nome: resnet18_sampler_v3_s44
+name: resnet18_sampler_v3_s44
 seed: 44
-dados:
-  cenas:
+data:
+  scenes:
   - sat1
   - sat2
   - sat3
@@ -18,36 +18,36 @@ dados:
   - sat14
   - sat15
   - sat16
-  excluir_borda: true
-  fracao: 1.0
-  max_por_classe: 40000
+  exclude_border: true
+  fraction: 1.0
+  max_per_class: 40000
   img_size: 224
 split:
-  metodo: aleatorio
-  fracoes:
+  method: random
+  fractions:
   - 0.7
   - 0.15
   - 0.15
-  bloco_px: 2048
-modelo:
-  arquitetura: resnet18
+  block_px: 2048
+model:
+  architecture: resnet18
   pretrained: true
-balanceamento:
-  metodo: sampler
-  max_peso: 20.0
+balancing:
+  method: sampler
+  max_weight: 20.0
 loss:
-  tipo: ce
+  type: ce
   gamma: 2.0
   label_smoothing: 0.0
-augmentation: pesada
-treino:
-  epocas: 500
+augmentation: heavy
+training:
+  epochs: 500
   batch: 128
   lr: 0.0003
   weight_decay: 0.05
-  otimizador: adamw
-  scheduler: cosseno
+  optimizer: adamw
+  scheduler: cosine
   amp: true
   num_workers: 4
-  early_stopping_paciencia: 12
-  metrica_checkpoint: f1_macro
+  early_stopping_patience: 12
+  checkpoint_metric: f1_macro

@@ -1,10 +1,10 @@
-# Visual Transformer pre-treinado (ImageNet). Comparar com o baseline CNN.
-# ViT costuma precisar de lr menor em fine-tuning.
-nome: vit_small_pretrained
-modelo:
-  arquitetura: vit_small_patch16_224
+# Pretrained Visual Transformer (ImageNet). Compare with the CNN baseline.
+# ViTs usually need a lower lr when fine-tuning.
+name: vit_small_pretrained
+model:
+  architecture: vit_small_patch16_224
   pretrained: true
-treino:
+training:
   batch: 96
   lr: 1.0e-4
-augmentation: leve
+augmentation: light

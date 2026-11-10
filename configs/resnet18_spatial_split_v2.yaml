@@ -1,0 +1,11 @@
+# v2: dataset updated with the reviewed sat3.
+name: resnet18_spatial_split_v2
+data:
+  scenes: [sat1, sat2, sat3]
+split:
+  method: spatial
+  block_px: 2048
+model:
+  architecture: resnet18
+  pretrained: true
+augmentation: light
