@@ -1,11 +1,11 @@
-# v2: dataset atualizado com sat3 revisado.
-nome: resnet18_sampler_v2
-dados:
-  cenas: [sat1, sat2, sat3]
-modelo:
-  arquitetura: resnet18
+# v2: dataset updated with the reviewed sat3.
+name: resnet18_sampler_v2
+data:
+  scenes: [sat1, sat2, sat3]
+model:
+  architecture: resnet18
   pretrained: true
-augmentation: pesada
-balanceamento:
-  metodo: sampler
-  max_peso: 20.0
+augmentation: heavy
+balancing:
+  method: sampler
+  max_weight: 20.0

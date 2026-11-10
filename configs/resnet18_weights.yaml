@@ -1,0 +1,10 @@
+# Hypothesis (b): class weights in the loss (weighted CE, weight capped at max_weight).
+# Differs from the baseline by 1 line.
+name: resnet18_weights
+model:
+  architecture: resnet18
+  pretrained: true
+augmentation: light
+balancing:
+  method: weights
+  max_weight: 20.0

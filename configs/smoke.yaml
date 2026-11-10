@@ -1,11 +1,11 @@
-# Smoke test: valida o pipeline de ponta a ponta em ~2 min (nao treina de verdade)
-nome: smoke
-dados:
-  fracao: 0.02
-modelo:
-  arquitetura: resnet18
+# Smoke test: validates the pipeline end to end in ~2 min (not a real training run)
+name: smoke
+data:
+  fraction: 0.02
+model:
+  architecture: resnet18
   pretrained: false
-treino:
-  epocas: 2
+training:
+  epochs: 2
   batch: 64
   num_workers: 2

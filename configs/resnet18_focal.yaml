@@ -1,10 +1,10 @@
-# Hipotese (d): focal loss (foca o gradiente nos exemplos dificeis).
-# Ortogonal ao balanceamento -- pode combinar com 'pesos' depois.
-nome: resnet18_focal
-modelo:
-  arquitetura: resnet18
+# Hypothesis (d): focal loss (focuses the gradient on hard examples).
+# Orthogonal to balancing -- can be combined with 'weights' later.
+name: resnet18_focal
+model:
+  architecture: resnet18
   pretrained: true
-augmentation: leve
+augmentation: light
 loss:
-  tipo: focal
+  type: focal
   gamma: 2.0

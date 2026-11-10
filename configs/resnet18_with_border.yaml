@@ -1,0 +1,9 @@
+# Hypothesis: does keeping tiles marked as border in training change anything?
+# (compare with resnet18_base, which excludes border tiles by default)
+name: resnet18_with_border
+data:
+  exclude_border: false
+model:
+  architecture: resnet18
+  pretrained: true
+augmentation: light

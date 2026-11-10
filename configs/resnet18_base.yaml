@@ -1,10 +1,10 @@
-# Baseline de referencia: CNN classica pre-treinada, sem tratamento de desbalanceamento.
-# Hipotese (a): o que acontece se nao fizermos nada? (esperado: otima acc global,
-# recall ~0 nas classes raras)
-nome: resnet18_base
-modelo:
-  arquitetura: resnet18
+# Reference baseline: pretrained classic CNN, no class imbalance handling.
+# Hypothesis (a): what happens if we do nothing? (expected: great overall accuracy,
+# recall ~0 on the rare classes)
+name: resnet18_base
+model:
+  architecture: resnet18
   pretrained: true
-augmentation: leve
-balanceamento:
-  metodo: nenhum
+augmentation: light
+balancing:
+  method: none

@@ -1,0 +1,11 @@
+# Hypothesis: how inflated is the random split due to spatial leakage?
+# (nearly identical neighboring tiles landing in both train and val). If the
+# metrics plunge vs resnet18_base, the leakage was real.
+name: resnet18_spatial_split
+split:
+  method: spatial
+  block_px: 2048
+model:
+  architecture: resnet18
+  pretrained: true
+augmentation: light

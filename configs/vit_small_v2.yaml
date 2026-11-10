@@ -1,11 +1,11 @@
-# v2: dataset atualizado com sat3 revisado.
-nome: vit_small_v2
-dados:
-  cenas: [sat1, sat2, sat3]
-modelo:
-  arquitetura: vit_small_patch16_224
+# v2: dataset updated with the reviewed sat3.
+name: vit_small_v2
+data:
+  scenes: [sat1, sat2, sat3]
+model:
+  architecture: vit_small_patch16_224
   pretrained: true
-treino:
+training:
   batch: 96
   lr: 1.0e-4
-augmentation: leve
+augmentation: light

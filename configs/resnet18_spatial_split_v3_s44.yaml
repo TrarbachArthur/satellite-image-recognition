@@ -1,0 +1,53 @@
+name: resnet18_spatial_split_v3_s44
+seed: 44
+data:
+  scenes:
+  - sat1
+  - sat2
+  - sat3
+  - sat4
+  - sat5
+  - sat6
+  - sat7
+  - sat8
+  - sat9
+  - sat10
+  - sat11
+  - sat12
+  - sat13
+  - sat14
+  - sat15
+  - sat16
+  exclude_border: true
+  fraction: 1.0
+  max_per_class: 40000
+  img_size: 224
+split:
+  method: spatial
+  fractions:
+  - 0.7
+  - 0.15
+  - 0.15
+  block_px: 2048
+model:
+  architecture: resnet18
+  pretrained: true
+balancing:
+  method: none
+  max_weight: 20.0
+loss:
+  type: ce
+  gamma: 2.0
+  label_smoothing: 0.0
+augmentation: light
+training:
+  epochs: 500
+  batch: 128
+  lr: 0.0003
+  weight_decay: 0.05
+  optimizer: adamw
+  scheduler: cosine
+  amp: true
+  num_workers: 4
+  early_stopping_patience: 12
+  checkpoint_metric: f1_macro
